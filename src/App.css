@@ -72,10 +72,11 @@ button {
 }
 
 .stats {
+  width: 100%;
   margin: 1em;
 }
 
 .stats > span {
-  margin-left: 1em;
-  margin-right: 1em;
+  display: inline-block;
+  width: 25%;
 }

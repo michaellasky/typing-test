@@ -3,9 +3,10 @@ import { incorrectLetterIndices } from "./App";
 
 export type TypingTestStatus = "PRESTART" | "STARTING" | "ACTIVE" | "FINISHED";
 export type TypingTestState = {
-  currentState: TypingTestStatus;
+  currentStatus: TypingTestStatus;
   startTime: number;
-  endTime: number;
+  maxTime: number;
+  elapsedSeconds: number;
   currentWordIdx: number;
   cpm: number;
   wpm: number;
@@ -40,24 +41,25 @@ export function typingTestReducer(
           0
         );
 
-      const minutesElapsed = (Date.now() - state.startTime) / 1000 / 60;
+      const elapsedSeconds = (Date.now() - state.startTime) / 1000;
+      const minutesElapsed = elapsedSeconds / 60;
       const cpm = Math.max(0, Math.round(numCharactersTyped / minutesElapsed));
       const wpm = cpm / 5;
       const accuracy = 1 - ((numErrorsInWordHistory / numCharactersTyped) || 0);
 
-      return { ...state, cpm, wpm, accuracy };
+      return { ...state, cpm, wpm, accuracy, elapsedSeconds: elapsedSeconds };
 
     case "NEXT_WORD_ACTION":
       return { ...state, currentWordIdx: state.currentWordIdx + 1 };
 
     case "START_COUNTDOWN":
-      return { ...state, currentState: "STARTING" };
+      return { ...state, currentStatus: "STARTING" };
 
     case "BEGIN_TEST":
-      return { ...state, currentState: "ACTIVE", startTime: Date.now() };
+      return { ...state, currentStatus: "ACTIVE", startTime: Date.now() };
 
     case "END_TEST":
-      return { ...state, currentState: "FINISHED", endTime: Date.now() };
+      return { ...state, currentStatus: "FINISHED" };
 
     case "RESET_STATE_ACTION":
       return action.payload.newState;

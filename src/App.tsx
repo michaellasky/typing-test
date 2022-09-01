@@ -11,7 +11,7 @@ import {
   EndTestAction,
   ResetStateAction,
   StartCountdownAction,
-  NextWordAction as NextWordAction,
+  NextWordAction,
   UpdateWordHistoryAction,
   UpdateWordList,
   RecalculateStatsAction,
@@ -19,9 +19,10 @@ import {
 
 function App() {
   const initialState: TypingTestState = {
-    currentState: "PRESTART",
+    currentStatus: "PRESTART",
     startTime: 0,
-    endTime: 0,
+    maxTime: 60,
+    elapsedSeconds: 0,
     currentWordIdx: 0,
     cpm: 0,
     wpm: 0,
@@ -36,8 +37,10 @@ function App() {
   );
 
   const {
-    currentState,
+    currentStatus,
     startTime,
+    maxTime,
+    elapsedSeconds,
     currentWordIdx,
     cpm,
     wpm,
@@ -48,15 +51,31 @@ function App() {
 
   const [beginButtonText, setBeginButtonText] = useState("Begin Test");
 
-  useEffect(() => {
-    if (currentState === "PRESTART") {
-      dispatch(UpdateWordList(shuffle(wordPool)));
-    }
-  }, [currentState, wordPool]);
-
-  if (currentWordIdx === words.length && currentState === "ACTIVE") {
+  if ((currentWordIdx === words.length || elapsedSeconds >= maxTime ) && currentStatus === "ACTIVE") {
     dispatch(EndTestAction());
   }
+
+  // Reshuffle words each game
+  useEffect(() => {
+    if (currentStatus === "PRESTART") {
+      dispatch(UpdateWordList(shuffle(wordPool)));
+    }
+  }, [currentStatus]);
+
+
+  // Recalculate time remaining and other stats every second
+  useEffect(() => {
+    let updateElapsedTimeInterval: any;
+    if (currentStatus === "ACTIVE") {
+      updateElapsedTimeInterval = setInterval(() => {
+        dispatch(RecalculateStatsAction());
+      }, 1000);
+    } else {
+      clearInterval(updateElapsedTimeInterval);
+    }
+    return () => clearInterval(updateElapsedTimeInterval);
+  }, [currentStatus, startTime]);
+
 
   function onValueChange(value: string) {
     const lastKeyStroke = value[value.length - 1];
@@ -93,29 +112,28 @@ function App() {
           cpm={cpm}
           wpm={wpm}
           accuracy={accuracy}
-          startTime={startTime}
-          currentState={currentState}
-          dispatchRecalculateStats={() => dispatch(RecalculateStatsAction())}
+          elapsedSeconds={elapsedSeconds}
+          maxTime={maxTime}
         />
-        {currentState !== "FINISHED" && (
+        {currentStatus !== "FINISHED" && (
           <WordList
             words={words}
             wordHistory={wordHistory}
             currentWordIdx={currentWordIdx}
           />
         )}
-        {currentState === "FINISHED" && (
+        {currentStatus === "FINISHED" && (
           <button onClick={onClickTryAgain}>Try Again</button>
         )}
-        {(currentState === "PRESTART" || currentState === "STARTING") && (
+        {(currentStatus === "PRESTART" || currentStatus === "STARTING") && (
           <button
-            disabled={currentState === "STARTING"}
+            disabled={currentStatus === "STARTING"}
             onClick={() => onClickBeginTest(3)}
           >
             {beginButtonText}
           </button>
         )}
-        {currentState === "ACTIVE" && (
+        {currentStatus === "ACTIVE" && (
           <WordInput
             currentValue={wordHistory[currentWordIdx]}
             onChange={onValueChange}
@@ -126,6 +144,8 @@ function App() {
   );
 }
 
+// Given two strings, returns indices of wordToTest that do not match correctWord
+// incorrectLetterIndices("abddd", "abcde") returns [2, 4]
 export function incorrectLetterIndices(
   wordToTest: string = "",
   correctWord: string
