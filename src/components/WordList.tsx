@@ -26,7 +26,7 @@ export function WordList({
         );
 
         return (
-          <div className={wordClassNames}>
+          <div key={word + wordIdx} className={wordClassNames}>
             {word.split("").map((letter, letterIdx) => {
               const isPreviousWord = wordIdx < currentWordIdx;
               const isCurrentWord = wordIdx === currentWordIdx;
@@ -41,7 +41,7 @@ export function WordList({
                     letterIdx < wordHistory[wordIdx]?.length),
               });
 
-              return <span className={letterClassName}>{letter}</span>;
+              return <span key={word + letterIdx} className={letterClassName}>{letter}</span>;
             })}
           </div>
         );

@@ -24,8 +24,7 @@ export function Stats({
     let updateElapsedTimeInterval: any;
     if (currentState === "ACTIVE") {
       updateElapsedTimeInterval = setInterval(() => {
-        const elapsedTime = Math.round((Date.now() - startTime) / 1000);
-        setElapsedTime(elapsedTime);
+        setElapsedTime(Math.round((Date.now() - startTime) / 1000));
         dispatchRecalculateStats();
       }, 1000);
     } else {

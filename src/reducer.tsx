@@ -43,7 +43,7 @@ export function typingTestReducer(
       const minutesElapsed = (Date.now() - state.startTime) / 1000 / 60;
       const cpm = Math.max(0, Math.round(numCharactersTyped / minutesElapsed));
       const wpm = cpm / 5;
-      const accuracy = 1 - (numErrorsInWordHistory / numCharactersTyped || 0);
+      const accuracy = 1 - ((numErrorsInWordHistory / numCharactersTyped) || 0);
 
       return { ...state, cpm, wpm, accuracy };
 

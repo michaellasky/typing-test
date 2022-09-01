@@ -119,7 +119,6 @@ function App() {
           <WordInput
             currentValue={wordHistory[currentWordIdx]}
             onChange={onValueChange}
-            currentTestState={currentState}
           />
         )}
       </header>
